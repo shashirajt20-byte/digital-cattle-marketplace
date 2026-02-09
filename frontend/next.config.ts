@@ -9,7 +9,7 @@ const nextConfig: NextConfig = {
     return[
       {
       source:"/api/:path*",
-      destination: "http://localhost:8000/:path*"
+      destination: "https://digital-cattle-marketplace.onrender.com/:path*"
       },
     ]
   }
