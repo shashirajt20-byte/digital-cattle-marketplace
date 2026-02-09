@@ -3,12 +3,31 @@ CREATE TABLE `User` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `name` VARCHAR(191) NOT NULL,
     `email` VARCHAR(191) NOT NULL,
-    `phone_no` INTEGER NOT NULL,
+    `phone_no` VARCHAR(191) NOT NULL,
     `avatar` VARCHAR(191) NOT NULL,
     `password` VARCHAR(191) NOT NULL,
+    `role` ENUM('SELLER', 'BUYER', 'ADMIN') NOT NULL DEFAULT 'BUYER',
+    `is_seller_verified` BOOLEAN NOT NULL DEFAULT false,
 
     UNIQUE INDEX `User_email_key`(`email`),
     UNIQUE INDEX `User_phone_no_key`(`phone_no`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `SellerApplication` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `userId` INTEGER NOT NULL,
+    `store_name` VARCHAR(191) NOT NULL,
+    `gst_number` VARCHAR(191) NULL,
+    `documents` VARCHAR(191) NULL,
+    `reason` VARCHAR(191) NULL,
+    `status` ENUM('PENDING', 'APPROVED', 'REJECTED') NOT NULL DEFAULT 'PENDING',
+    `reject_note` VARCHAR(191) NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL,
+
+    UNIQUE INDEX `SellerApplication_userId_key`(`userId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -50,8 +69,8 @@ CREATE TABLE `Product` (
     `categoryId` INTEGER NULL,
     `title` VARCHAR(191) NOT NULL,
     `description` VARCHAR(191) NOT NULL,
-    `price` DOUBLE NOT NULL,
-    `image` VARCHAR(191) NULL,
+    `price` DECIMAL(10, 2) NULL,
+    `image` TEXT NULL,
     `breedId` INTEGER NULL,
     `milk_capacityId` INTEGER NULL,
 
@@ -88,9 +107,16 @@ CREATE TABLE `ProductItem` (
     `productId` INTEGER NOT NULL,
     `userId` INTEGER NOT NULL,
     `quantity_instock` INTEGER NOT NULL,
-    `image` VARCHAR(191) NULL,
-    `price` DOUBLE NOT NULL,
+    `image` TEXT NULL,
+    `price` DECIMAL(10, 2) NOT NULL,
+    `isActive` BOOLEAN NOT NULL DEFAULT true,
+    `status` ENUM('PENDING', 'ACTIVE', 'REJECTED') NOT NULL DEFAULT 'PENDING',
+    `reject_reason` VARCHAR(191) NULL,
 
+    INDEX `ProductItem_userId_idx`(`userId`),
+    INDEX `ProductItem_productId_idx`(`productId`),
+    INDEX `ProductItem_status_idx`(`status`),
+    UNIQUE INDEX `ProductItem_productId_userId_key`(`productId`, `userId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -108,12 +134,13 @@ CREATE TABLE `Cattle` (
     `weight_kg` DOUBLE NULL,
     `gender` VARCHAR(191) NULL,
     `health_status` VARCHAR(191) NULL,
-    `image` VARCHAR(191) NOT NULL,
+    `image` TEXT NOT NULL,
     `is_pregnant` BOOLEAN NOT NULL DEFAULT false,
-    `price` DOUBLE NOT NULL,
+    `price` DECIMAL(10, 2) NOT NULL,
     `status` ENUM('ACTIVE', 'SOLD', 'EXPIRED') NOT NULL DEFAULT 'ACTIVE',
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
+    UNIQUE INDEX `Cattle_tag_id_key`(`tag_id`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -145,6 +172,8 @@ CREATE TABLE `Order` (
     `shipping_methodId` INTEGER NULL,
     `order_total` INTEGER NOT NULL,
     `order_statusId` INTEGER NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -219,6 +248,9 @@ CREATE TABLE `Payment` (
 
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- AddForeignKey
+ALTER TABLE `SellerApplication` ADD CONSTRAINT `SellerApplication_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `UserAddress` ADD CONSTRAINT `UserAddress_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
